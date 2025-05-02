@@ -1,0 +1,352 @@
+
+
+
+<!-- 
+
+  k204 computers talk!
+
+      computers:
+        hold stuff (folders/files)
+        do things with the stored stuff (code)
+        talk to eachother
+
+      programmers tell computers what to do
+      like create a snapwords game :) 
+
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Snap Word Web</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; overflow: hidden; background: #1a1a2e; }
+    #wordInput { 
+      position: absolute; 
+      top: 20px; 
+      left: 50%; 
+      transform: translateX(-50%); 
+      padding: 10px; 
+      font-size: 24px; 
+      width: 200px; 
+      text-align: center;
+      border: 2px solid #fff;
+      border-radius: 10px;
+      background: #fff;
+      color: #333;
+      font-family: 'Comic Neue', sans-serif;
+    }
+    canvas { font-family: 'Comic Neue', sans-serif; }
+    #sentenceLabel {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 20px;
+      font-size: 24px;
+      font-family: 'Comic Neue', sans-serif;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 10px;
+      text-align: center;
+      max-width: 80%;
+    }
+  </style>
+</head>
+<body>
+  <input type="text" id="wordInput" placeholder="Enter a snap word" autocomplete="off">
+  <div id="sentenceLabel">Add a snap word!</div>
+  <script>
+    let nodes = [];
+    let links = [];
+    let draggedNode = null;
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffad60'];
+    const wordList = [
+      'what', 'how', 'when', 'there', 'top', 'from', 'cat', 'dog', 'run', 'see',
+      'big', 'go', 'up', 'play', 'like', 'the', 'and', 'you', 'is', 'in',
+      'it', 'to', 'on', 'at', 'me', 'we', 'he', 'she', 'am', 'be',
+      'do', 'no', 'so', 'an', 'by', 'my', 'or', 'us', 'fun', 'sun',
+      'hat', 'red', 'blue', 'day', 'car', 'tree', 'bird', 'fish', 'jump', 'down',
+      'good', 'moon', 'star', 'sky', 'home', 'book', 'ball', 'toy', 'food', 'cake',
+      'milk', 'egg', 'ant', 'bug', 'bee', 'fly', 'eat', 'sit', 'hot', 'cold',
+      'wet', 'dry', 'fast', 'slow', 'loud', 'soft', 'new', 'old', 'one', 'two',
+      'out', 'all', 'now', 'off', 'yes', 'get', 'put', 'way', 'find', 'look',
+      'come', 'here', 'weird'
+    ];
+    const sentenceMap = {
+      'weird': 'ok ok lets not',
+      'what': 'What is that?',
+      'how': 'How are you?',
+      'when': 'When is lunch?',
+      'there': 'There is a dog.',
+      'top': 'On top of the hill.',
+      'from': 'From the park.',
+      'cat': 'The cat is soft.',
+      'dog': 'My dog runs fast.',
+      'run': 'I can run.',
+      'see': 'I see a bird.',
+      'big': 'A big red ball.',
+      'go': 'Go to school.',
+      'up': 'Look up high!',
+      'play': 'We play outside.',
+      'like': 'I like to jump.',
+      'the': 'The sun is bright.',
+      'and': 'Cats and dogs play.',
+      'you': 'You are my friend.',
+      'is': 'It is a hat.',
+      'in': 'In the box.',
+      'it': 'It is fun.',
+      'to': 'To the moon!',
+      'on': 'On the tree.',
+      'at': 'At the zoo.',
+      'me': 'Look at me!',
+      'we': 'We are happy.',
+      'he': 'He can run.',
+      'she': 'She has a cat.',
+      'am': 'I am tall.',
+      'be': 'Be kind today.',
+      'do': 'Do you jump?',
+      'no': 'No more cookies.',
+      'so': 'So many stars.',
+      'an': 'An apple fell.',
+      'by': 'By the river.',
+      'my': 'My dog is big.',
+      'or': 'Red or blue?',
+      'us': 'Sing with us.',
+      'fun': 'Fun in the sun.',
+      'sun': 'The sun is hot.',
+      'hat': 'A red hat.',
+      'red': 'Red balloons fly.',
+      'blue': 'Blue sky above.',
+      'day': 'A sunny day.',
+      'car': 'The car is fast.',
+      'tree': 'A tall tree.',
+      'bird': 'The bird sings.',
+      'fish': 'Fish swim fast.',
+      'jump': 'Jump up high!',
+      'down': 'Slide down now.',
+      'good': 'A good friend.',
+      'moon': 'The moon glows.',
+      'star': 'A bright star.',
+      'sky': 'Blue sky today.',
+      'home': 'Home is cozy.',
+      'book': 'Read a book.',
+      'ball': 'Kick the ball.',
+      'toy': 'My toy car.',
+      'food': 'Yummy food here.',
+      'cake': 'Eat the cake.',
+      'milk': 'Drink your milk.',
+      'egg': 'An egg is white.',
+      'ant': 'A tiny ant.',
+      'bug': 'A red bug.',
+      'bee': 'The bee buzzes.',
+      'fly': 'Birds fly high.',
+      'eat': 'Eat an apple.',
+      'sit': 'Sit on the mat.',
+      'hot': 'The soup is hot.',
+      'cold': 'Ice is cold.',
+      'wet': 'The dog is wet.',
+      'dry': 'Dry your hands.',
+      'fast': 'Run fast now.',
+      'slow': 'Walk slow here.',
+      'loud': 'A loud drum.',
+      'soft': 'A soft pillow.',
+      'new': 'A new toy.',
+      'old': 'An old tree.',
+      'one': 'One big fish.',
+      'two': 'Two red cars.',
+      'out': 'Go out to play.',
+      'all': 'All the stars.',
+      'now': 'Jump now!',
+      'off': 'Turn off the light.',
+      'yes': 'Yes, I can!',
+      'get': 'Get the ball.',
+      'put': 'Put it here.',
+      'way': 'This way, please.',
+      'find': 'Find the cat.',
+      'look': 'Look at the sky.',
+      'come': 'Come with me.',
+      'here': 'Here is a book.'
+    };
+
+    function setup() {
+      createCanvas(windowWidth, windowHeight);
+      textAlign(CENTER, CENTER);
+      textFont('Comic Neue', 24);
+      textStyle(BOLD);
+      document.getElementById('wordInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && e.target.value.trim()) {
+          addWord(e.target.value.trim().toLowerCase());
+          e.target.value = '';
+        }
+      });
+    }
+
+    function addWord(word) {
+      if (word === 'clear') {
+        nodes = [];
+        links = [];
+        document.getElementById('sentenceLabel').textContent = 'Add a snap word!';
+      } else if (word === 'egg' && nodes.length < 25) {
+        const numToAdd = Math.min(7, 25 - nodes.length);
+        let count = 0;
+        const interval = setInterval(() => {
+          if (count < numToAdd && nodes.length < 25) {
+            const randomWord = wordList[Math.floor(Math.random() * wordList.length)];
+            addSingleWord(randomWord);
+            count++;
+          }
+          if (count >= numToAdd || nodes.length >= 25) {
+            clearInterval(interval);
+          }
+        }, 250);
+      } else if (nodes.length < 25) {
+        addSingleWord(word);
+      }
+    }
+
+    function addSingleWord(word) {
+      const angle = random(TWO_PI);
+      const radius = 50 + random(100);
+      const newNode = {
+        id: nodes.length,
+        word: word,
+        x: width / 2 + cos(angle) * radius,
+        y: height / 2 + sin(angle) * radius,
+        vx: 0,
+        vy: 0,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        targetX: null,
+        targetY: null
+      };
+      nodes.push(newNode);
+      if (nodes.length > 1) {
+        const numLinks = Math.min(2, nodes.length - 1);
+        const targets = shuffle([...Array(nodes.length - 1).keys()]).slice(0, numLinks);
+        for (let target of targets) {
+          if (target !== newNode.id) {
+            links.push({ source: newNode.id, target: target });
+          }
+        }
+      }
+      const sentence = sentenceMap[word] || 'Add a snap word!';
+      document.getElementById('sentenceLabel').textContent = sentence;
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function mousePressed() {
+      for (let node of nodes) {
+        let d = dist(mouseX, mouseY, node.x, node.y);
+        if (d < 30) {
+          draggedNode = node;
+          draggedNode.targetX = node.x;
+          draggedNode.targetY = node.y;
+          break;
+        }
+      }
+    }
+
+    function mouseReleased() {
+      draggedNode = null;
+    }
+
+    function draw() {
+      background('#1a1a2e');
+      const repulsionStrength = 0.1;
+      const linkDistance = 150;
+      const centerX = width / 2;
+      const centerY = height / 2;
+
+      for (let node of nodes) {
+        if (node === draggedNode) {
+          node.x = mouseX;
+          node.y = mouseY;
+          node.vx = 0;
+          node.vy = 0;
+        } else {
+          for (let other of nodes) {
+            if (node !== other) {
+              let dx = node.x - other.x;
+              let dy = node.y - other.y;
+              let distance = sqrt(dx * dx + dy * dy) + 0.1;
+              if (distance < 200) {
+                let force = repulsionStrength * (200 - distance) / distance;
+                node.vx += (dx / distance) * force;
+                node.vy += (dy / distance) * force;
+              }
+            }
+          }
+          node.vx += (centerX - node.x) * 0.002;
+          node.vy += (centerY - node.y) * 0.002;
+
+          if (node.targetX !== null && node !== draggedNode) {
+            let dx = node.targetX - node.x;
+            let dy = node.targetY - node.y;
+            node.vx += dx * 0.1;
+            node.vy += dy * 0.1;
+            if (dist(node.x, node.y, node.targetX, node.targetY) < 5) {
+              node.targetX = null;
+              node.targetY = null;
+            }
+          }
+        }
+      }
+
+      for (let link of links) {
+        const source = nodes[link.source];
+        const target = nodes[link.target];
+        let dx = source.x - target.x;
+        let dy = source.y - target.y;
+        let distance = sqrt(dx * dx + dy * dy) + 0.1;
+        let force = (distance - linkDistance) * 0.015;
+        source.vx -= (dx / distance) * force;
+        source.vy -= (dy / distance) * force;
+        target.vx += (dx / distance) * force;
+        target.vy += (dy / distance) * force;
+      }
+
+      for (let node of nodes) {
+        if (node !== draggedNode) {
+          node.x += node.vx;
+          node.y += node.vy;
+          node.vx *= 0.85;
+          node.vy *= 0.85;
+          node.y += sin(frameCount * 0.05 + node.id) * 0.5;
+        }
+        node.x = constrain(node.x, 50, width - 50);
+        node.y = constrain(node.y, 50, height - 50);
+      }
+
+      for (let link of links) {
+        const source = nodes[link.source];
+        const target = nodes[link.target];
+        let alpha = 100 + 50 * sin(frameCount * 0.1 + link.source);
+        stroke(255, alpha);
+        strokeWeight(2);
+        line(source.x, source.y, target.x, target.y);
+      }
+
+      noStroke();
+      for (let node of nodes) {
+        fill(node.color);
+        ellipse(node.x, node.y, 60, 60);
+        fill(255);
+        text(node.word, node.x, node.y);
+      }
+    }
+
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight);
+    }
+  </script>
+</body>
+</html>
